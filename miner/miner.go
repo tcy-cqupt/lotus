@@ -146,6 +146,7 @@ func (m *Miner) mine(ctx context.Context) {
 		var base *MiningBase
 		var onDone func(bool, error)
 		var injectNulls abi.ChainEpoch
+		waited := false
 
 		for {
 			prebase, err := m.GetBestMiningCandidate(ctx)
@@ -160,7 +161,10 @@ func (m *Miner) mine(ctx context.Context) {
 			}
 
 			// Wait until propagation delay period after block we plan to mine on
-			onDone, injectNulls, err = m.waitFunc(ctx, prebase.TipSet.MinTimestamp())
+			if !waited {
+				onDone, injectNulls, err = m.waitFunc(ctx, prebase.TipSet.MinTimestamp())
+			}
+			waited = true
 			if err != nil {
 				log.Error(err)
 				continue
